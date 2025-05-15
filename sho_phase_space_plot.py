@@ -6,7 +6,7 @@ import math
 OMEGA_SQ = 1.0      # ω^2 = k/m for SHO (used for Hamiltonian contours & optimization)
 M = 1.0             # Mass for Hamiltonian optimization. With M=1, H = 0.5*ω²*x² + 0.5*v²
 DT_EULER = 0.1      # Time step for Euler integration
-N_STEPS_EULER = 100 # Number of steps for Euler trajectories
+N_STEPS_EULER = 200 # Number of steps for Euler trajectories
 LR = 0.26*10   # Learning rate for all
 BETA_MOMENTUM = 0.75 # Momentum factor (β)
 N_STEPS_OPTIM = 14  # Number of steps for optimization trajectories
@@ -20,44 +20,11 @@ LEGEND_FONTSIZE = 18
 # --- End Font Size Configuration ---
 
 # --- 1. Vector Field Definition (Quartic Kinetic Oscillator) ---
-def quartic_kinetic_vector_field(x, p):
-    """
-    Vector field for L = ½ m x_dot^2 + ¼ α x_dot^4 − ½ k x^2
-    
-    Parameters:
-      x     : position (can be array)
-      p     : conjugate momentum (p = m*v + α*v^3) (can be array)
-    
-    Returns:
-      dx_dt : ẋ = real root of α v^3 + m v − p = 0 (array)
-      dp_dt : ṗ = −k * x (array)
-    """
+def quartic_kinetic_vector_field(x, v):
+    dv_dt= -x/(1+3*v*v)
+    dx_dt= v
 
-    m, alpha, k = 1.0, 1.0, 1.0 # System parameters for the quartic oscillator
-
-    # Cardano parameters to solve α v^3 + m v − p = 0 for v (which is dx_dt)
-    Q = p / (2 * alpha)
-    R_cubed = (m / (3 * alpha)) ** 3
-
-    # Discriminant term: (p/(2*alpha))^2 + (m/(3*alpha))^3
-    # This should be non-negative for this cubic form to have one real root.
-    sqrt_D_arg = Q * Q + R_cubed
-    D_val = np.sqrt(np.maximum(0, sqrt_D_arg)) # Use np.maximum for robustness
-
-    # Cube-root terms for Cardano's solution
-    u_arg = Q + D_val
-    v_arg = Q - D_val
-    
-    u = np.cbrt(u_arg) # np.cbrt gives real cube root
-    v = np.cbrt(v_arg)
-
-    # ẋ (velocity) is the sum of these two cube roots
-    dx_dt = u + v
-
-    # ṗ from the quadratic potential part of Lagrangian
-    dp_dt = -k * x
-
-    return dx_dt, dp_dt
+    return dx_dt, dv_dt
 
 # --- 2. RK4 Method for Trajectories ---
 def rk4_step(x, p, dt, vector_field_func):
@@ -143,8 +110,15 @@ def dynamic_momentum_step(x_curr, v_curr, mom_x_prev, mom_v_prev, lr, beta, m_pa
     # v_next = v_curr - mom_v_curr
     # return x_next, v_next, mom_x_curr, mom_v_curr
 
+
+    # correct ones!
     v_next= beta*v_curr -(1-beta)* x_curr
     x_next= x_curr +lr/(1+ 4*v_curr*v_curr)* v_next
+
+
+    # wrong ones!!
+    #v_next= beta*v_curr - lr/(1+ 4*v_curr*v_curr)* x_curr
+    #x_next= x_curr +lr* v_next
     print("Placeholder: dynamic_momentum_step called. Please implement.")
     return x_next, v_next, mom_x_prev, mom_v_prev # Return current to avoid error
 
@@ -184,7 +158,7 @@ def compute_optimizer_trajectory(x0, v0, optimizer_type, lr, n_steps, m_param, o
 def plot_phase_space_and_optimization(file_name=PLOT_FILENAME):
     """Creates and saves the combined plot."""
     # Define grid for vector field
-    imrange = 2.8
+    imrange = 3.3
     x_range = np.linspace(-imrange, imrange, 20)
     p_range = np.linspace(-imrange, imrange, 20) 
     X_grid, P_grid = np.meshgrid(x_range, p_range) 
