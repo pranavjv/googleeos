@@ -124,8 +124,8 @@ def momentum_step(x_curr, v_curr, mom_x_prev, mom_v_prev, lr, beta, m_param, ome
     # return x_next, v_next, mom_x_curr, mom_v_curr
     print("Placeholder: momentum_step called. Please implement.")
     # v_next= beta*v_curr - lr* x_curr
-    v_next= beta*v_curr +(1-beta)* x_curr
-    x_next= x_curr -lr* v_next
+    v_next= beta*v_curr -(1-beta)* x_curr
+    x_next= x_curr +lr* v_next
     return x_next, v_next, mom_x_prev, mom_v_prev # Return current to avoid error
 
 def dynamic_momentum_step(x_curr, v_curr, mom_x_prev, mom_v_prev, lr, beta, m_param, omega_sq_param, total_steps, current_step):
@@ -143,8 +143,8 @@ def dynamic_momentum_step(x_curr, v_curr, mom_x_prev, mom_v_prev, lr, beta, m_pa
     # v_next = v_curr - mom_v_curr
     # return x_next, v_next, mom_x_curr, mom_v_curr
 
-    v_next= beta*v_curr +(1-beta)* x_curr
-    x_next= x_curr -lr/(1+ 4*v_curr*v_curr)* v_next
+    v_next= beta*v_curr -(1-beta)* x_curr
+    x_next= x_curr +lr/(1+ 4*v_curr*v_curr)* v_next
     print("Placeholder: dynamic_momentum_step called. Please implement.")
     return x_next, v_next, mom_x_prev, mom_v_prev # Return current to avoid error
 
@@ -224,8 +224,8 @@ def plot_phase_space_and_optimization(file_name=PLOT_FILENAME):
                                      color='blue', markersize=7, linewidth=1.5, marker='o')
 
     # Plot SHO Hamiltonian contours (using P_grid as the velocity component for H)
-    H_contours = hamiltonian(X_grid, P_grid, M, OMEGA_SQ)
-    plt.contour(X_grid, P_grid, H_contours, levels=10, colors='gold', alpha=0.6, linestyles='dotted', linewidths=1)
+    #H_contours = hamiltonian(X_grid, P_grid, M, OMEGA_SQ)
+    #plt.contour(X_grid, P_grid, H_contours, levels=10, colors='gold', alpha=0.6, linestyles='dotted', linewidths=1)
 
     plt.xlabel("Position (x)", fontsize=AXIS_LABEL_FONTSIZE)
     plt.ylabel("Velocity (v)", fontsize=AXIS_LABEL_FONTSIZE)
