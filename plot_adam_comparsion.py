@@ -84,7 +84,7 @@ try:
     
     # 1. Plot training losses
     plt.subplot(2, 2, 1)
-    plt.plot(np.arange(len(vadam_train_loss)), vadam_train_loss, label="VADAM")
+    plt.plot(np.arange(len(vadam_train_loss)), vadam_train_loss, label="VRAdam")
     plt.plot(np.arange(len(adam_train_loss)), adam_train_loss, label="Adam")
     plt.title("Training Loss Comparison", fontsize=TITLE_FONT_SIZE)
     plt.xlabel("Iteration", fontsize=AXIS_LABEL_FONT_SIZE)
@@ -97,7 +97,7 @@ try:
     
     # 2. Plot training accuracy
     plt.subplot(2, 2, 2)
-    plt.plot(np.arange(len(vadam_train_acc)), vadam_train_acc, label="VADAM")
+    plt.plot(np.arange(len(vadam_train_acc)), vadam_train_acc, label="VRAdam")
     plt.plot(np.arange(len(adam_train_acc)), adam_train_acc, label="Adam")
     plt.title("Training Accuracy Comparison", fontsize=TITLE_FONT_SIZE)
     plt.xlabel("Iteration", fontsize=AXIS_LABEL_FONT_SIZE)
@@ -144,6 +144,8 @@ try:
         plt.xticks(fontsize=AXIS_TICK_FONT_SIZE)
         plt.yticks(fontsize=AXIS_TICK_FONT_SIZE)
         plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+        ax = plt.gca() # Get current axes
+        ax.yaxis.get_offset_text().set_fontsize(AXIS_LABEL_FONT_SIZE) # Increase exponent font size
         plt.legend(fontsize=LEGEND_FONT_SIZE)
         plt.grid(True)
     
@@ -170,6 +172,8 @@ try:
     plt.xticks(fontsize=AXIS_TICK_FONT_SIZE)
     plt.yticks(fontsize=AXIS_TICK_FONT_SIZE)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    ax = plt.gca() # Get current axes
+    ax.yaxis.get_offset_text().set_fontsize(AXIS_LABEL_FONT_SIZE) # Increase exponent font size
     plt.legend(fontsize=LEGEND_FONT_SIZE)
     plt.grid(True)
     

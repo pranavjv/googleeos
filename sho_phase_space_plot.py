@@ -7,16 +7,16 @@ OMEGA_SQ = 1.0      # ω^2 = k/m for SHO (used for Hamiltonian contours & optimi
 M = 1.0             # Mass for Hamiltonian optimization. With M=1, H = 0.5*ω²*x² + 0.5*v²
 DT_EULER = 0.1      # Time step for Euler integration
 N_STEPS_EULER = 100 # Number of steps for Euler trajectories
-LR = 0.3     # Learning rate for all
-BETA_MOMENTUM = 0.8 # Momentum factor (β)
-N_STEPS_OPTIM = 20  # Number of steps for optimization trajectories
+LR = 0.26*10   # Learning rate for all
+BETA_MOMENTUM = 0.75 # Momentum factor (β)
+N_STEPS_OPTIM = 14  # Number of steps for optimization trajectories
 PLOT_FILENAME = "sho_phase_space_optimization.png"
 
 # --- Font Size Configuration ---
-TITLE_FONTSIZE = 18
-AXIS_LABEL_FONTSIZE = 16
-AXIS_TICK_FONTSIZE = 14
-LEGEND_FONTSIZE = 12
+TITLE_FONTSIZE = 25
+AXIS_LABEL_FONTSIZE = 18
+AXIS_TICK_FONTSIZE = 15
+LEGEND_FONTSIZE = 18
 # --- End Font Size Configuration ---
 
 # --- 1. Vector Field Definition (Quartic Kinetic Oscillator) ---
@@ -123,8 +123,9 @@ def momentum_step(x_curr, v_curr, mom_x_prev, mom_v_prev, lr, beta, m_param, ome
     # v_next = v_curr - mom_v_curr
     # return x_next, v_next, mom_x_curr, mom_v_curr
     print("Placeholder: momentum_step called. Please implement.")
-    v_next= beta*v_curr - lr* x_curr
-    x_next= x_curr + v_next
+    # v_next= beta*v_curr - lr* x_curr
+    v_next= beta*v_curr +(1-beta)* x_curr
+    x_next= x_curr -lr* v_next
     return x_next, v_next, mom_x_prev, mom_v_prev # Return current to avoid error
 
 def dynamic_momentum_step(x_curr, v_curr, mom_x_prev, mom_v_prev, lr, beta, m_param, omega_sq_param, total_steps, current_step):
@@ -142,8 +143,8 @@ def dynamic_momentum_step(x_curr, v_curr, mom_x_prev, mom_v_prev, lr, beta, m_pa
     # v_next = v_curr - mom_v_curr
     # return x_next, v_next, mom_x_curr, mom_v_curr
 
-    v_next= beta*v_curr - lr/(1+30*v_curr*v_curr)* x_curr
-    x_next= x_curr + v_next
+    v_next= beta*v_curr +(1-beta)* x_curr
+    x_next= x_curr -lr/(1+ 4*v_curr*v_curr)* v_next
     print("Placeholder: dynamic_momentum_step called. Please implement.")
     return x_next, v_next, mom_x_prev, mom_v_prev # Return current to avoid error
 
@@ -183,52 +184,52 @@ def compute_optimizer_trajectory(x0, v0, optimizer_type, lr, n_steps, m_param, o
 def plot_phase_space_and_optimization(file_name=PLOT_FILENAME):
     """Creates and saves the combined plot."""
     # Define grid for vector field
-    imrange = 2.5
+    imrange = 2.8
     x_range = np.linspace(-imrange, imrange, 20)
     p_range = np.linspace(-imrange, imrange, 20) 
     X_grid, P_grid = np.meshgrid(x_range, p_range) 
     DX_field, DP_field = quartic_kinetic_vector_field(X_grid, P_grid) 
 
-    plt.figure(figsize=(13, 11)) # Increased figure size for external legend
+    plt.figure(figsize=(11, 11)) # Increased figure size for external legend
 
     # Plot vector field (quiver plot)
     plt.quiver(X_grid, P_grid, DX_field, DP_field, color='dimgray', alpha=0.7, 
-               label="Quartic Kinetic Vector Field (dx/dt, dp/dt)", headwidth=3, headlength=4, width=0.003)
+               label="Vector Field (dx/dt, dv/dt)", headwidth=3, headlength=4, width=0.003)
 
     # Plot RK4 trajectories for the quartic system
     x_e1, p_e1 = rk4_trajectory(x0=2.0, p0=0.0, dt=DT_EULER, n_steps=N_STEPS_EULER)
-    plt.plot(x_e1, p_e1, label="RK4 Trajectory 1 (x₀=2, p₀=0)", color='cornflowerblue', linewidth=1.5)
+    plt.plot(x_e1, p_e1, label="Continuous Trajectories", color='black', linewidth=1.5)
     
     x_e2, p_e2 = rk4_trajectory(x0=0.0, p0=1.5, dt=DT_EULER, n_steps=N_STEPS_EULER)
-    plt.plot(x_e2, p_e2, label="RK4 Trajectory 2 (x₀=0, p₀=1.5)", color='mediumseagreen', linewidth=1.5)
+    plt.plot(x_e2, p_e2,  color='black', linewidth=1.5)
 
-    # Plot Gradient Descent trajectory on SHO Hamiltonian
-    x_gd, v_gd = compute_optimizer_trajectory(x0=1.5, v0=0.0, optimizer_type="gd", 
-                                               lr=LR, n_steps=N_STEPS_OPTIM, 
-                                               m_param=M, omega_sq_param=OMEGA_SQ)
-    if x_gd.size > 0 : plt.plot(x_gd, v_gd, 'o-', label=f"GD on SHO H (lr={LR})", color='orangered', markersize=4, linewidth=1)
+    # # Plot Gradient Descent trajectory on SHO Hamiltonian
+    # x_gd, v_gd = compute_optimizer_trajectory(x0=1.5, v0=0.0, optimizer_type="gd", 
+    #                                            lr=LR, n_steps=N_STEPS_OPTIM, 
+    #                                            m_param=M, omega_sq_param=OMEGA_SQ)
+    # if x_gd.size > 0 : plt.plot(x_gd, v_gd, 'o-', label=f"GD on SHO H (lr={LR})", color='orangered', markersize=4, linewidth=1)
 
     # Plot Momentum trajectory on SHO Hamiltonian
     x_mom, v_mom = compute_optimizer_trajectory(x0=-2.5, v0=0.0, optimizer_type="momentum", 
                                                  lr=LR, n_steps=N_STEPS_OPTIM, 
                                                  m_param=M, omega_sq_param=OMEGA_SQ, beta=BETA_MOMENTUM)
-    if x_mom.size > 0 : plt.plot(x_mom, v_mom, 's-', label=f"Momentum on SHO H (lr={LR}, β={BETA_MOMENTUM})", 
-                                   color='darkorchid', markersize=4, linewidth=1)
+    if x_mom.size > 0 : plt.plot(x_mom, v_mom, 's-', label=f"Momentum", 
+                                   color='orange', markersize=7, linewidth=1.5, marker= 'o')
 
     # Plot Dynamic Momentum trajectory on SHO Hamiltonian (placeholder plot)
     x_dyn_mom, v_dyn_mom = compute_optimizer_trajectory(x0=2.5, v0=0.0, optimizer_type="dynamic_momentum",
                                                          lr=LR, n_steps=N_STEPS_OPTIM,
                                                          m_param=M, omega_sq_param=OMEGA_SQ, beta=BETA_MOMENTUM)
-    if x_dyn_mom.size > 0 : plt.plot(x_dyn_mom, v_dyn_mom, 'x-', label=f"Dynamic Momentum on SHO H (lr={LR}, β={BETA_MOMENTUM})",
-                                     color='teal', markersize=4, linewidth=1)
+    if x_dyn_mom.size > 0 : plt.plot(x_dyn_mom, v_dyn_mom, 'x-', label=f"VRMomentum",
+                                     color='blue', markersize=7, linewidth=1.5, marker='o')
 
     # Plot SHO Hamiltonian contours (using P_grid as the velocity component for H)
     H_contours = hamiltonian(X_grid, P_grid, M, OMEGA_SQ)
     plt.contour(X_grid, P_grid, H_contours, levels=10, colors='gold', alpha=0.6, linestyles='dotted', linewidths=1)
 
     plt.xlabel("Position (x)", fontsize=AXIS_LABEL_FONTSIZE)
-    plt.ylabel("Momentum (p) / Velocity (v for H optim.)", fontsize=AXIS_LABEL_FONTSIZE)
-    plt.title(f"Quartic Oscillator Phase Space & SHO Hamiltonian Optimization", fontsize=TITLE_FONTSIZE)
+    plt.ylabel("Velocity (v)", fontsize=AXIS_LABEL_FONTSIZE)
+    plt.title(f"Phase Space Diagram with quadratic potential", fontsize=TITLE_FONTSIZE)
     plt.xticks(fontsize=AXIS_TICK_FONTSIZE)
     plt.yticks(fontsize=AXIS_TICK_FONTSIZE)
     plt.axhline(0, color='black', lw=0.5)
@@ -240,7 +241,7 @@ def plot_phase_space_and_optimization(file_name=PLOT_FILENAME):
     plt.axis('equal') 
 
     # Adjust legend to be outside the plot using user's specified anchor
-    plt.legend(loc='lower left' ,bbox_to_anchor=(-0.5, -0.2), fontsize=LEGEND_FONTSIZE)
+    plt.legend(loc='lower left' ,bbox_to_anchor=(0.19, -0.35), fontsize=LEGEND_FONTSIZE)
     
     plt.grid(True, linestyle='--', alpha=0.7)
     
