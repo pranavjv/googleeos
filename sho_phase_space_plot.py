@@ -12,6 +12,13 @@ BETA_MOMENTUM = 0.8 # Momentum factor (β)
 N_STEPS_OPTIM = 20  # Number of steps for optimization trajectories
 PLOT_FILENAME = "sho_phase_space_optimization.png"
 
+# --- Font Size Configuration ---
+TITLE_FONTSIZE = 18
+AXIS_LABEL_FONTSIZE = 16
+AXIS_TICK_FONTSIZE = 14
+LEGEND_FONTSIZE = 12
+# --- End Font Size Configuration ---
+
 # --- 1. Vector Field Definition (Quartic Kinetic Oscillator) ---
 def quartic_kinetic_vector_field(x, p):
     """
@@ -178,11 +185,11 @@ def plot_phase_space_and_optimization(file_name=PLOT_FILENAME):
     # Define grid for vector field
     imrange = 2.5
     x_range = np.linspace(-imrange, imrange, 20)
-    p_range = np.linspace(-imrange, imrange, 20) # Changed v_range to p_range
-    X_grid, P_grid = np.meshgrid(x_range, p_range) # Changed V_grid to P_grid
-    DX_field, DP_field = quartic_kinetic_vector_field(X_grid, P_grid) # Changed DV_field
+    p_range = np.linspace(-imrange, imrange, 20) 
+    X_grid, P_grid = np.meshgrid(x_range, p_range) 
+    DX_field, DP_field = quartic_kinetic_vector_field(X_grid, P_grid) 
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(13, 11)) # Increased figure size for external legend
 
     # Plot vector field (quiver plot)
     plt.quiver(X_grid, P_grid, DX_field, DP_field, color='dimgray', alpha=0.7, 
@@ -196,23 +203,22 @@ def plot_phase_space_and_optimization(file_name=PLOT_FILENAME):
     plt.plot(x_e2, p_e2, label="RK4 Trajectory 2 (x₀=0, p₀=1.5)", color='mediumseagreen', linewidth=1.5)
 
     # Plot Gradient Descent trajectory on SHO Hamiltonian
-    # (v0 for optimizer is plotted on p-axis)
     x_gd, v_gd = compute_optimizer_trajectory(x0=1.5, v0=0.0, optimizer_type="gd", 
-                                              lr=LR, n_steps=N_STEPS_OPTIM, 
-                                              m_param=M, omega_sq_param=OMEGA_SQ)
+                                               lr=LR, n_steps=N_STEPS_OPTIM, 
+                                               m_param=M, omega_sq_param=OMEGA_SQ)
     if x_gd.size > 0 : plt.plot(x_gd, v_gd, 'o-', label=f"GD on SHO H (lr={LR})", color='orangered', markersize=4, linewidth=1)
 
     # Plot Momentum trajectory on SHO Hamiltonian
     x_mom, v_mom = compute_optimizer_trajectory(x0=-2.5, v0=0.0, optimizer_type="momentum", 
-                                                lr=LR, n_steps=N_STEPS_OPTIM, 
-                                                m_param=M, omega_sq_param=OMEGA_SQ, beta=BETA_MOMENTUM)
+                                                 lr=LR, n_steps=N_STEPS_OPTIM, 
+                                                 m_param=M, omega_sq_param=OMEGA_SQ, beta=BETA_MOMENTUM)
     if x_mom.size > 0 : plt.plot(x_mom, v_mom, 's-', label=f"Momentum on SHO H (lr={LR}, β={BETA_MOMENTUM})", 
-                                 color='darkorchid', markersize=4, linewidth=1)
+                                   color='darkorchid', markersize=4, linewidth=1)
 
     # Plot Dynamic Momentum trajectory on SHO Hamiltonian (placeholder plot)
     x_dyn_mom, v_dyn_mom = compute_optimizer_trajectory(x0=2.5, v0=0.0, optimizer_type="dynamic_momentum",
-                                                        lr=LR, n_steps=N_STEPS_OPTIM,
-                                                        m_param=M, omega_sq_param=OMEGA_SQ, beta=BETA_MOMENTUM)
+                                                         lr=LR, n_steps=N_STEPS_OPTIM,
+                                                         m_param=M, omega_sq_param=OMEGA_SQ, beta=BETA_MOMENTUM)
     if x_dyn_mom.size > 0 : plt.plot(x_dyn_mom, v_dyn_mom, 'x-', label=f"Dynamic Momentum on SHO H (lr={LR}, β={BETA_MOMENTUM})",
                                      color='teal', markersize=4, linewidth=1)
 
@@ -220,17 +226,28 @@ def plot_phase_space_and_optimization(file_name=PLOT_FILENAME):
     H_contours = hamiltonian(X_grid, P_grid, M, OMEGA_SQ)
     plt.contour(X_grid, P_grid, H_contours, levels=10, colors='gold', alpha=0.6, linestyles='dotted', linewidths=1)
 
-    plt.xlabel("Position (x)", fontsize=12)
-    plt.ylabel("Momentum (p) / Velocity (v for H optim.)", fontsize=12) # Clarified y-axis
-    plt.title(f"Quartic Oscillator Phase Space & SHO Hamiltonian Optimization", fontsize=16)
+    plt.xlabel("Position (x)", fontsize=AXIS_LABEL_FONTSIZE)
+    plt.ylabel("Momentum (p) / Velocity (v for H optim.)", fontsize=AXIS_LABEL_FONTSIZE)
+    plt.title(f"Quartic Oscillator Phase Space & SHO Hamiltonian Optimization", fontsize=TITLE_FONTSIZE)
+    plt.xticks(fontsize=AXIS_TICK_FONTSIZE)
+    plt.yticks(fontsize=AXIS_TICK_FONTSIZE)
     plt.axhline(0, color='black', lw=0.5)
     plt.axvline(0, color='black', lw=0.5)
-    plt.legend(loc='best', fontsize='small')
-    plt.grid(True, linestyle='--', alpha=0.7)
-    plt.axis('equal') 
+    
+    # Set limits and aspect ratio BEFORE placing legend and adjusting subplots
     plt.xlim(x_range.min(), x_range.max())
-    plt.ylim(p_range.min(), p_range.max()) # Changed from v_range
-    plt.tight_layout()
+    plt.ylim(p_range.min(), p_range.max())
+    plt.axis('equal') 
+
+    # Adjust legend to be outside the plot using user's specified anchor
+    plt.legend(loc='lower left' ,bbox_to_anchor=(-0.5, -0.2), fontsize=LEGEND_FONTSIZE)
+    
+    plt.grid(True, linestyle='--', alpha=0.7)
+    
+    # Adjust subplot to make room for legend
+    # These values (left, bottom, right, top) are fractions of the figure width and height.
+    # Increase left and bottom padding to make space for a legend anchored far to the left/bottom.
+    plt.subplots_adjust(left=0.3, bottom=0.25, right=0.95, top=0.9)
 
     plt.savefig(file_name)
     plt.close()
